@@ -22,10 +22,10 @@ RUN apt-get update && apt-get -y install curl
 
 RUN mkdir -p /weights
 
-RUN curl -L -o /weights/sparse_inst_r50_giam_ceaffc.pth "https://github.com/supervisely-ecosystem/SparseInsr/releases/download/v0.0.1/sparse_inst_r50_giam_ceaffc.pth"
-RUN curl -L -o /weights/sparse_inst_r50vd_base.pth "https://github.com/supervisely-ecosystem/SparseInsr/releases/download/v0.0.1/sparse_inst_r50vd_base.pth"
-RUN curl -L -o /weights/sparse_inst_r50_dcn_giam_aug.pth "https://github.com/supervisely-ecosystem/SparseInsr/releases/download/v0.0.1/sparse_inst_r50_dcn_giam_aug.pth"
-RUN curl -L -o /weights/sparse_inst_r50vd_dcn_giam_aug.pth "https://github.com/supervisely-ecosystem/SparseInsr/releases/download/v0.0.1/sparse_inst_r50vd_dcn_giam_aug.pth"
-RUN curl -L -o /weights/sparse_inst_pvt_v2_b2_li_giam.pth "https://github.com/supervisely-ecosystem/SparseInsr/releases/download/v0.0.1/sparse_inst_pvt_v2_b2_li_giam.pth"
+RUN curl -L -o /weights/sparse_inst_r50_giam_ceaffc.pth "https://github.com/supervisely-ecosystem/SparseInst/releases/download/v0.0.1/sparse_inst_r50_giam_ceaffc.pth"
+RUN curl -L -o /weights/sparse_inst_r50vd_base.pth "https://github.com/supervisely-ecosystem/SparseInst/releases/download/v0.0.1/sparse_inst_r50vd_base.pth"
+RUN curl -L -o /weights/sparse_inst_r50_dcn_giam_aug.pth "https://github.com/supervisely-ecosystem/SparseInst/releases/download/v0.0.1/sparse_inst_r50_dcn_giam_aug.pth"
+RUN curl -L -o /weights/sparse_inst_r50vd_dcn_giam_aug.pth "https://github.com/supervisely-ecosystem/SparseInst/releases/download/v0.0.1/sparse_inst_r50vd_dcn_giam_aug.pth"
+RUN curl -L -o /weights/sparse_inst_pvt_v2_b2_li_giam.pth "https://github.com/supervisely-ecosystem/SparseInst/releases/download/v0.0.1/sparse_inst_pvt_v2_b2_li_giam.pth"
 
 LABEL python_sdk_version=6.73.251
