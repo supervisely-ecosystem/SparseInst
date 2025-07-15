@@ -6,7 +6,6 @@ inference_test_output
 
 
 *.png
-*.json
 *.diff
 
 # compilation and distribution
@@ -37,7 +36,6 @@ wheels/
 
 # editor settings
 .idea
-.vscode
 _darcs
 
 # project dirs
@@ -49,3 +47,7 @@ _darcs
 
 # mac file
 .DS_Store
+
+images/
+supervisely.env
+local.env

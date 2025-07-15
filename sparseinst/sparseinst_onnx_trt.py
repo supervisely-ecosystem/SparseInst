@@ -7,30 +7,31 @@ import torch.nn.functional as F
 from detectron2.modeling import build_backbone
 from detectron2.structures import ImageList, Instances, BitMasks
 from detectron2.modeling import META_ARCH_REGISTRY, build_backbone
-
-from .encoder import build_sparse_inst_encoder
-from .decoder import build_sparse_inst_decoder
+from .encoder_onnx_trt import build_sparse_inst_encoder
+from .decoder_onnx_trt import build_sparse_inst_decoder
 from .loss import build_sparse_inst_criterion
 from .utils import nested_tensor_from_tensor_list
 
-__all__ = ["SparseInst"]
+__all__ = ["SparseInst_ONNX_TRT"]
 
 
 #@torch.jit.script
 def rescoring_mask(scores, mask_pred, masks):
     mask_pred_ = mask_pred.float()
-    return scores * ((masks * mask_pred_).sum([1, 2]) / (mask_pred_.sum([1, 2]) + 1e-6))
+    return scores * ((masks * mask_pred_).sum([1, 2]) / (mask_pred_.sum([1, 2]).double() + 1e-6).float())
 
 
 @META_ARCH_REGISTRY.register()
-class SparseInst(nn.Module):
+class SparseInst_ONNX_TRT(nn.Module):
 
     def __init__(self, cfg):
         super().__init__()
 
         # move to target device
         self.device = torch.device(cfg.MODEL.DEVICE)
+        self.use_cp = True
 
+        print("NOM DU DEVICE UTILISE2", torch.cuda.get_device_name())
         # backbone
         self.backbone = build_backbone(cfg)
         self.size_divisibility = self.backbone.size_divisibility
@@ -95,7 +96,6 @@ class SparseInst(nn.Module):
         if isinstance(images, (list, torch.Tensor)):
             images = nested_tensor_from_tensor_list(images)
         max_shape = images.tensor.shape[2:]
-        # forward
         features = self.backbone(images.tensor)
         features = self.encoder(features)
         output = self.decoder(features)
@@ -111,32 +111,38 @@ class SparseInst(nn.Module):
                 output, batched_inputs, max_shape, images.image_sizes)
             processed_results = [{"instances": r} for r in results]
             return processed_results
-
-    def forward_test(self, images):
-        # for inference, onnx, tensorrt
-        # input images: BxCxHxW, fixed, need padding size
-        # normalize
-        images = (images - self.pixel_mean[None]) / self.pixel_std[None]
+    
+    def forward_test_3(self, images):
+        # images = self.preprocess_inputs(batched_inputs)
+        # if isinstance(images, (list, torch.Tensor)):
+        #     images = nested_tensor_from_tensor_list(images)
+        max_shape = images.shape[2:]
+        # forward
+        # if self.use_cp:
+        #     features = self.backbone(images.tensor)
+        #     features = checkpoint(self.encoder,features)
+        #     output = self.decoder(features)
+        # else:
         features = self.backbone(images)
         features = self.encoder(features)
         output = self.decoder(features)
 
-        pred_scores = output["pred_logits"].sigmoid()
-        pred_masks = output["pred_masks"].sigmoid()
-        pred_objectness = output["pred_scores"].sigmoid()
-        pred_scores = torch.sqrt(pred_scores * pred_objectness)
-        pred_masks = F.interpolate(
-            pred_masks, scale_factor=4.0, mode="bilinear", align_corners=False)
-        return pred_scores, pred_masks
+        results = self.inference_test_3(output, images)
+        # import pdb; pdb.set_trace()
+        # processed_results = [{"instances": r} for r in results]
+
+        out_scores = torch.cat([r.scores.unsqueeze(0) for r in results], dim=0)
+        out_pred_classes = torch.cat([r.pred_classes.unsqueeze(0) for r in results], dim=0)
+        out_pred_masks = torch.cat([r.pred_masks for r in results], dim=0)
+        return (out_scores, out_pred_classes, out_pred_masks)
 
     def inference(self, output, batched_inputs, max_shape, image_sizes):
-        # max_detections = self.max_detections
+    # max_detections = self.max_detections
         results = []
         pred_scores = output["pred_logits"].sigmoid()
         pred_masks = output["pred_masks"].sigmoid()
         pred_objectness = output["pred_scores"].sigmoid()
         pred_scores = torch.sqrt(pred_scores * pred_objectness)
-
         for _, (scores_per_image, mask_pred_per_image, batched_input, img_shape) in enumerate(zip(
                 pred_scores, pred_masks, batched_inputs, image_sizes)):
 
@@ -149,7 +155,6 @@ class SparseInst(nn.Module):
             scores = scores[keep]
             labels = labels[keep]
             mask_pred_per_image = mask_pred_per_image[keep]
-
             if scores.size(0) == 0:
                 result.scores = scores
                 result.pred_classes = labels
@@ -160,10 +165,10 @@ class SparseInst(nn.Module):
             # rescoring mask using maskness
             scores = rescoring_mask(
                 scores, mask_pred_per_image > self.mask_threshold, mask_pred_per_image)
-
             # upsample the masks to the original resolution:
             # (1) upsampling the masks to the padded inputs, remove the padding area
             # (2) upsampling/downsampling the masks to the original sizes
+            
             mask_pred_per_image = F.interpolate(
                 mask_pred_per_image.unsqueeze(1), size=max_shape, mode="bilinear", align_corners=False)[:, :, :h, :w]
             mask_pred_per_image = F.interpolate(
@@ -178,16 +183,38 @@ class SparseInst(nn.Module):
             result.scores = scores
             result.pred_classes = labels
             results.append(result)
-
         return results
 
-    def forward_onnx(self, images):
-        features = self.backbone(images)
-        features = self.encoder(features)
-        output = self.decoder(features)
-
+    def inference_test_3(self, output, images):
+        # max_detections = self.max_detections
+        results = []
         pred_scores = output["pred_logits"].sigmoid()
         pred_masks = output["pred_masks"].sigmoid()
         pred_objectness = output["pred_scores"].sigmoid()
         pred_scores = torch.sqrt(pred_scores * pred_objectness)
-        return pred_scores, pred_masks
+    
+        for _, (scores_per_image, mask_pred_per_image, image) in enumerate(zip(
+                pred_scores, pred_masks, images)):
+
+            shape = image.shape[1:]
+            result = Instances(shape)
+
+            scores, labels = scores_per_image.max(dim=-1)
+
+            if scores.size(0) == 0:
+                result.scores = scores
+                result.pred_classes = labels
+                results.append(result)
+                continue
+
+            h, w = shape
+            # rescoring mask using maskness
+            scores = rescoring_mask(scores, mask_pred_per_image > self.mask_threshold, mask_pred_per_image)
+            # using Detectron2 Instances to store the final results
+                       
+            result.pred_masks = mask_pred_per_image #mask_pred
+            result.scores = scores
+            result.pred_classes = labels
+            results.append(result)
+
+        return results
