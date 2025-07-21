@@ -17,6 +17,7 @@ from sparseinst.utils import nested_tensor_from_tensor_list
 from serve.src.onnx_utils import convert_to_onnx, preprocess_onnx_inputs, postprocess_onnx_predictions
 import onnxruntime as ort
 from serve.src.tensorrt_utils import TRTInference, convert_to_tensorrt
+import yaml
 
 
 
@@ -31,7 +32,7 @@ torch.backends.cudnn.benchmark = False
 
 class SparseInstModel(sly.nn.inference.InstanceSegmentation):
     FRAMEWORK_NAME = "SparseInst"
-    MODELS = "serve/src/models.json"
+    MODELS = "models/models.json"
     APP_OPTIONS = "serve/src/app_options.yaml"
     INFERENCE_SETTINGS = "serve/src/inference_settings.yaml"
 
@@ -43,46 +44,42 @@ class SparseInstModel(sly.nn.inference.InstanceSegmentation):
         device: str,
         runtime: str,
     ):
+        config_path = model_files["config"]
+        self.cfg = get_cfg()
+        add_sparse_inst_config(self.cfg)
+        self.cfg.merge_from_file(config_path)
+
+        checkpoint_path = model_files["checkpoint"]
+        if sly.is_development():
+            checkpoint_path = "." + checkpoint_path
+        self.cfg.MODEL.WEIGHTS = checkpoint_path
+        self.cfg.MODEL.DEVICE = device
+        self.cfg.MODEL.SPARSE_INST.CLS_THRESHOLD = 0.1
+        self.device = device
+
+        if runtime == RuntimeType.PYTORCH:
+            self.cfg.freeze()
+            self.model = SparseInst(self.cfg)
+            self.model.to(self.device)
+            checkpointer = DetectionCheckpointer(self.model)
+            checkpointer.load(self.cfg.MODEL.WEIGHTS)
+            self.model.eval()
+        elif runtime in [RuntimeType.ONNXRUNTIME, RuntimeType.TENSORRT]:
+            if runtime == RuntimeType.ONNXRUNTIME and model_info["ONNX support"] == "False":
+                raise ValueError(f"{model_info['meta']['model_name']} does not support ONNX. Please, use SparseInst (G-IAM) R-50 instead.")
+            elif runtime == RuntimeType.TENSORRT and model_info["TensorRT support"] == "False":
+                raise ValueError(f"{model_info['meta']['model_name']} does not support TensorRT. Please, use SparseInst (G-IAM) R-50 instead.")
+            
+            onnx_path = convert_to_onnx(self.cfg)
+
+            if runtime == RuntimeType.ONNXRUNTIME:
+                providers = (["CUDAExecutionProvider"] if device != "cpu" else ["CPUExecutionProvider"])
+                self.ort_session = ort.InferenceSession(onnx_path, providers=providers)
+            elif runtime == RuntimeType.TENSORRT:
+                tensorrt_path = convert_to_tensorrt(onnx_path)
+                self.engine = TRTInference(tensorrt_path, max_batch_size=1)
+
         if model_source == ModelSource.PRETRAINED:
-            config_path = "configs/" + model_files["config"]
-            self.cfg = get_cfg()
-            add_sparse_inst_config(self.cfg)
-            self.cfg.merge_from_file(config_path)
-
-            checkpoint_path = model_files["checkpoint"]
-            if sly.is_development():
-                checkpoint_path = "." + checkpoint_path
-            self.cfg.MODEL.WEIGHTS = checkpoint_path
-            self.cfg.MODEL.DEVICE = device
-            self.cfg.MODEL.SPARSE_INST.CLS_THRESHOLD = 0.1
-            self.device = torch.device(device)
-
-            if runtime == RuntimeType.PYTORCH:
-                self.cfg.freeze()
-                self.model = SparseInst(self.cfg)
-                self.model.to(self.device)
-                checkpointer = DetectionCheckpointer(self.model)
-                checkpointer.load(self.cfg.MODEL.WEIGHTS)
-                self.model.eval()
-            elif runtime in [RuntimeType.ONNXRUNTIME, RuntimeType.TENSORRT]:
-                if runtime == RuntimeType.ONNXRUNTIME and model_info["ONNX support"] == "False":
-                    raise ValueError(f"{model_info['meta']['model_name']} does not support ONNX. Please, use SparseInst (G-IAM) R-50 instead.")
-                elif runtime == RuntimeType.TENSORRT and model_info["TensorRT support"] == "False":
-                    raise ValueError(f"{model_info['meta']['model_name']} does not support TensorRT. Please, use SparseInst (G-IAM) R-50 instead.")
-                
-                onnx_path = convert_to_onnx(self.cfg)
-
-                if runtime == RuntimeType.ONNXRUNTIME:
-                    providers = (["CUDAExecutionProvider"] if device != "cpu" else ["CPUExecutionProvider"])
-                    self.ort_session = ort.InferenceSession(onnx_path, providers=providers)
-                elif runtime == RuntimeType.TENSORRT:
-                    tensorrt_path = convert_to_tensorrt(onnx_path)
-                    self.engine = TRTInference(tensorrt_path, max_batch_size=1)
-
-            self.classes = MetadataCatalog.get("coco_2017_val").thing_classes
-            obj_classes = [sly.ObjClass(name, sly.Bitmap) for name in self.classes]
-            conf_tag = sly.TagMeta("confidence", sly.TagValueType.ANY_NUMBER)
-            self._model_meta = sly.ProjectMeta(obj_classes=obj_classes, tag_metas=[conf_tag])
             self.checkpoint_info = CheckpointInfo(
                 checkpoint_name=os.path.basename(checkpoint_path),
                 model_name=model_info["meta"]["model_name"],
@@ -90,10 +87,20 @@ class SparseInstModel(sly.nn.inference.InstanceSegmentation):
                 checkpoint_url=model_info["meta"]["model_files"]["checkpoint"],
                 model_source=model_source,
             )
+            self.classes = MetadataCatalog.get("coco_2017_val").thing_classes
+        else:
+            self.classes = torch.load(checkpoint_path)["class_names"]
+
+        obj_classes = [sly.ObjClass(name, sly.Bitmap) for name in self.classes]
+        conf_tag = sly.TagMeta("confidence", sly.TagValueType.ANY_NUMBER)
+        self._model_meta = sly.ProjectMeta(obj_classes=obj_classes, tag_metas=[conf_tag])
+
         self.runtime = runtime
         self.aug = T.ResizeShortestEdge(
             [self.cfg.INPUT.MIN_SIZE_TEST, self.cfg.INPUT.MIN_SIZE_TEST], self.cfg.INPUT.MAX_SIZE_TEST
         )
+        with open(self.INFERENCE_SETTINGS) as settings_file:
+            self._custom_inference_settings = yaml.safe_load(settings_file)
 
     def predict_benchmark(self, images_np: List[np.ndarray], settings: dict = None):
         if self.runtime == RuntimeType.PYTORCH:

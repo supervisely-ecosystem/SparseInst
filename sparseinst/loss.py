@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.cuda.amp import autocast
 from scipy.optimize import linear_sum_assignment
-from fvcore.nn import sigmoid_focal_loss_jit
+from fvcore.nn import sigmoid_focal_loss_jit, sigmoid_focal_loss
 
 from detectron2.utils.registry import Registry
 
@@ -103,7 +103,14 @@ class SparseInstCriterion(nn.Module):
         labels = torch.zeros_like(src_logits)
         labels[pos_inds, target_classes[pos_inds]] = 1
         # comp focal loss.
-        class_loss = sigmoid_focal_loss_jit(
+        # class_loss = sigmoid_focal_loss_jit(
+        #     src_logits,
+        #     labels,
+        #     alpha=0.25,
+        #     gamma=2.0,
+        #     reduction="sum",
+        # ) / num_instances
+        class_loss = sigmoid_focal_loss(
             src_logits,
             labels,
             alpha=0.25,

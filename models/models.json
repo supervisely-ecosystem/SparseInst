@@ -1,0 +1,92 @@
+[
+    {
+        "Model": "SparseInst (G-IAM) R-50",
+        "input": "608",
+        "AP_val": 33.4,
+        "AP": 34.0,
+        "FPS": 44.6,
+        "ONNX support": true,
+        "TensorRT support": true,
+        "fp16 support": true,
+        "meta": {
+            "task_type": "instance segmentation",
+            "model_name": "SparseInst (G-IAM) R-50",
+            "model_files": {
+                "checkpoint": "/weights/sparse_inst_r50_giam_ceaffc.pth",
+                "config": "configs/sparse_inst_r50_giam.yaml"
+            }
+        }
+    },
+    {
+        "Model": "SparseInst R-50-vd",
+        "input": "640",
+        "AP_val": 34.1,
+        "AP": 34.5,
+        "FPS": 42.6,
+        "ONNX support": true,
+        "TensorRT support": true,
+        "fp16 support": true,
+        "meta": {
+            "task_type": "instance segmentation",
+            "model_name": "SparseInst R-50-vd",
+            "model_files": {
+                "checkpoint": "/weights/sparse_inst_r50vd_base.pth",
+                "config": "configs/sparse_inst_r50vd_base.yaml"
+            }
+        }
+    },
+    {
+        "Model": "SparseInst (G-IAM) R-50-DCN",
+        "input": "608",
+        "AP_val": 36.4,
+        "AP": 36.8,
+        "FPS": 41.6,
+        "ONNX support": false,
+        "TensorRT support": false,
+        "fp16 support": false,
+        "meta": {
+            "task_type": "instance segmentation",
+            "model_name": "SparseInst (G-IAM) R-50-DCN",
+            "model_files": {
+                "checkpoint": "/weights/sparse_inst_r50_dcn_giam_aug.pth",
+                "config": "configs/sparse_inst_r50_dcn_giam_aug.yaml"
+            }
+        }
+    },
+    {
+        "Model": "SparseInst (G-IAM) R-50-vd-DCN",
+        "input": "640",
+        "AP_val": 37.7,
+        "AP": 38.1,
+        "FPS": 39.3,
+        "ONNX support": false,
+        "TensorRT support": false,
+        "fp16 support": false,
+        "meta": {
+            "task_type": "instance segmentation",
+            "model_name": "SparseInst (G-IAM) R-50-vd-DCN",
+            "model_files": {
+                "checkpoint": "/weights/sparse_inst_r50vd_dcn_giam_aug.pth",
+                "config": "configs/sparse_inst_r50vd_dcn_giam_aug.yaml"
+            }
+        }
+    },
+    {
+        "Model": "SparseInst (G-IAM) PVTv2-B2-li",
+        "input": "640",
+        "AP_val": 37.2,
+        "AP": 38.2,
+        "FPS": 26.5,
+        "ONNX support": false,
+        "TensorRT support": false,
+        "fp16 support": true,
+        "meta": {
+            "task_type": "instance segmentation",
+            "model_name": "SparseInst (G-IAM) PVTv2-B2-li",
+            "model_files": {
+                "checkpoint": "/weights/sparse_inst_pvt_v2_b2_li_giam.pth",
+                "config": "configs/sparse_inst_pvt_b2_li_giam.yaml"
+            }
+        }
+    }
+]

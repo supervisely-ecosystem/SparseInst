@@ -1,0 +1,32 @@
+{
+    "name": "Train SparseInst",
+    "version": "2.0.0",
+    "type": "app",
+    "categories": [
+        "neural network",
+        "images",
+        "instance segmentation",
+        "train"
+    ],
+    "description": "Dashboard to configure, start and monitor SparseInst training",
+    "docker_image": "supervisely/sparseinst:1.0.2",
+    "instance_version": "6.12.12",
+    "entrypoint": "python3 -m uvicorn src.main:train.app --app-dir ./train --host 0.0.0.0 --port 8000 --ws websockets",
+    "task_location": "workspace_tasks",
+    "need_gpu": true,
+    "gpu": "required",
+    "isolate": true,
+    "icon": "https://github.com/supervisely-ecosystem/SparseInst/releases/download/v0.0.1/icon_sparseInst-train.jpg",
+    "icon_cover": true,
+    "poster": "https://github.com/supervisely-ecosystem/SparseInst/releases/download/v0.0.1/poster_sparseInst-train.jpg",
+    "community_agent": false,
+    "license": {
+        "type": "MIT"
+    },
+    "context_menu": {
+        "target": [
+            "images_project"
+        ],
+        "context_root": "Neural Networks"
+    }
+}
