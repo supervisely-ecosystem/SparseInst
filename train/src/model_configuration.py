@@ -184,6 +184,8 @@ def configure_trainer(train):
     output_dir = "./train_output"
     if os.path.exists(output_dir):
         sly.fs.clean_dir(output_dir)
+    else:
+        os.mkdir(output_dir)
     cfg.OUTPUT_DIR = output_dir
 
     # set training parameters
