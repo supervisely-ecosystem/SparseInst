@@ -50,8 +50,8 @@ class SparseInstModel(sly.nn.inference.InstanceSegmentation):
         self.cfg.merge_from_file(config_path)
 
         checkpoint_path = model_files["checkpoint"]
-        if sly.is_development():
-            checkpoint_path = "." + checkpoint_path
+        # if sly.is_development():
+        #     checkpoint_path = "." + checkpoint_path
         self.cfg.MODEL.WEIGHTS = checkpoint_path
         self.cfg.MODEL.DEVICE = device
         self.cfg.MODEL.SPARSE_INST.CLS_THRESHOLD = 0.1
@@ -215,8 +215,12 @@ class SparseInstModel(sly.nn.inference.InstanceSegmentation):
         prediction_figures = []
         if self.runtime ==  RuntimeType.PYTORCH:
             pred_classes = result.pred_classes.detach().cpu().numpy()
-            pred_scores = result.scores.detach().cpu().numpy().tolist()
+            valid = np.where(pred_classes <= len(self.classes) - 1)[0]
+            pred_classes = pred_classes[valid]
+            pred_scores = result.scores.detach().cpu().numpy()
+            pred_scores = pred_scores[valid].tolist()
             pred_masks = result.pred_masks.detach().cpu().numpy()
+            pred_masks = pred_masks[valid]
         else:
             pred_classes = result.pred_classes
             pred_scores = result.scores.tolist()

@@ -199,6 +199,7 @@ def configure_trainer(train):
     cfg.DATALOADER.NUM_WORKERS = hyperparameters["n_workers"]
     cfg.SOLVER.CHECKPOINT_PERIOD = hyperparameters["checkpoint_save_frequency"]
     cfg.TEST.EVAL_PERIOD = hyperparameters["evaluation_frequency"]
+    cfg.SOLVER.AMP.ENABLED = hyperparameters["use_fp16"]
     cfg.freeze()
 
     # save config

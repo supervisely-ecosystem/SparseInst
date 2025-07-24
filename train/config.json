@@ -9,7 +9,7 @@
         "train"
     ],
     "description": "Dashboard to configure, start and monitor SparseInst training",
-    "docker_image": "supervisely/sparseinst:1.0.2",
+    "docker_image": "supervisely/sparseinst:1.0.3",
     "instance_version": "6.12.12",
     "entrypoint": "python3 -m uvicorn src.main:train.app --app-dir ./train --host 0.0.0.0 --port 8000 --ws websockets",
     "task_location": "workspace_tasks",
@@ -28,5 +28,24 @@
             "images_project"
         ],
         "context_root": "Neural Networks"
+    },
+    "framework": {
+        "name": "SparseInst",
+        "conference": "CVPR 2022",
+        "released": 2022,
+        "tasks": {
+            "instance_segmentation": {
+                "metric": 37.7,
+                "models": 5
+            }
+        },
+        "real_time": true,
+        "onnx": true,
+        "tensorrt": true
+    },
+    "files": {
+        "models": "models/models.json",
+        "inference_settings": "serve/src/inference_settings.yaml",
+        "hyperparams": "train/src/hyperparameters.yaml"
     }
 }

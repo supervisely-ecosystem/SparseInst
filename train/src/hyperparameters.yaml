@@ -15,3 +15,5 @@ n_workers: 2 # equivalent to cfg.DATALOADER.NUM_WORKERS in detectron2
 checkpoint_save_frequency: 1000 # equivalent to cfg.SOLVER.CHECKPOINT_PERIOD in detectron2
 
 evaluation_frequency: 1000 # equivalent to cfg.TEST.EVAL_PERIOD in detectron2
+
+use_fp16: false # equivalent to cfg.SOLVER.AMP.ENABLED in detectron2

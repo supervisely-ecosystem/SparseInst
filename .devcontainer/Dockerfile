@@ -1,4 +1,4 @@
-FROM supervisely/base-py-sdk:6.73.251
+FROM supervisely/base-py-sdk:6.73.404
 
 RUN pip3 install torch==1.10.1+cu113 torchvision==0.11.2+cu113 torchaudio==0.10.1+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
 
@@ -22,5 +22,6 @@ RUN pip3 install Pillow==9.5.0
 RUN pip3 install timm==1.0.16
 RUN pip3 install gdown==5.2.0
 RUN pip3 install onnxruntime-gpu==1.11.0
+RUN pip3 install supervisely[model-benchmark]==6.73.404
 
 LABEL "role"="development"
