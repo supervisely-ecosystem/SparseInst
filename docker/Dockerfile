@@ -18,6 +18,7 @@ RUN pip3 install Pillow==9.5.0
 RUN pip3 install timm==1.0.16
 RUN pip3 install onnxruntime-gpu==1.11.0
 RUN pip3 install supervisely[model-benchmark]==6.73.404
+RUN pip3 install supervisely[training]==6.73.404
 
 RUN apt-get update && apt-get -y install curl
 

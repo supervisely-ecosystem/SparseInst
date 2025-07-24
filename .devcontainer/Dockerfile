@@ -23,5 +23,6 @@ RUN pip3 install timm==1.0.16
 RUN pip3 install gdown==5.2.0
 RUN pip3 install onnxruntime-gpu==1.11.0
 RUN pip3 install supervisely[model-benchmark]==6.73.404
+RUN pip3 install supervisely[training]==6.73.404
 
 LABEL "role"="development"

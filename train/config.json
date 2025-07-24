@@ -9,7 +9,7 @@
         "train"
     ],
     "description": "Dashboard to configure, start and monitor SparseInst training",
-    "docker_image": "supervisely/sparseinst:1.0.3",
+    "docker_image": "supervisely/sparseinst:1.0.4",
     "instance_version": "6.14.0",
     "entrypoint": "python3 -m uvicorn src.main:train.app --app-dir ./train --host 0.0.0.0 --port 8000 --ws websockets",
     "task_location": "workspace_tasks",
