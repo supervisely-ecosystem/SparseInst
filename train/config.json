@@ -6,7 +6,8 @@
         "neural network",
         "images",
         "instance segmentation",
-        "train"
+        "train",
+        "framework:SparseInst"
     ],
     "description": "Dashboard to configure, start and monitor SparseInst training",
     "docker_image": "supervisely/sparseinst:1.0.4",
