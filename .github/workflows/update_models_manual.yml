@@ -13,8 +13,8 @@ jobs:
   update-models:
     uses: supervisely-ecosystem/workflows/.github/workflows/update_models_common.yml@master
     with:
-      MODELS_PATH: ${{ github.event.inputs.models_path }}
-      FRAMEWORK: ${{ github.event.inputs.framework }}
+      MODELS_PATH: models/models.json
+      FRAMEWORK: SparseInst
       SERVER_ADDRESS: ${{ vars.SUPERVISELY_PROD_SERVER_ADDRESS }}
     secrets:
       API_TOKEN: ${{ secrets.SUPERVISELY_PROD_API_TOKEN }}
