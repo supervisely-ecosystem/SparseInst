@@ -1,13 +1,6 @@
 name: Update Models Manual
 on:
-  workflow_dispatch:
-    inputs:
-      models_path:
-        type: string
-        required: true
-      framework:
-        type: string
-        required: true
+  workflow_dispatch
 
 jobs:
   update-models:
