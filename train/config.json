@@ -32,17 +32,17 @@
     },
     "framework": {
         "name": "SparseInst",
+        "tags": [
+            "Real-Time"
+        ],
+        "export": [
+            "ONNX",
+            "TensorRT"
+        ],
         "conference": "CVPR 2022",
-        "released": 2022,
-        "tasks": {
-            "instance_segmentation": {
-                "metric": 37.7,
-                "models": 5
-            }
-        },
-        "real_time": true,
-        "onnx": true,
-        "tensorrt": true
+        "released": "2022",
+        "description": "SparseInst presents a new object representation method (Instance Activation Maps), to adaptively highlight informative regions of objects for recognition. SparseInst achieves good trade-off between speed and accuracy (37.9 AP and 40 FPS with 608x input).",
+        "github": "https://github.com/hustvl/SparseInst"
     },
     "files": {
         "models": "models/models.json",
