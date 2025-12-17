@@ -17,8 +17,8 @@ RUN pip3 install nvidia-tensorrt==99.0.0
 RUN pip3 install Pillow==9.5.0
 RUN pip3 install timm==1.0.16
 RUN pip3 install onnxruntime-gpu==1.11.0
-RUN pip3 install supervisely[model-benchmark]==6.73.404
-RUN pip3 install supervisely[training]==6.73.404
+RUN pip3 install supervisely[model-benchmark]==6.73.486
+RUN pip3 install supervisely[training]==6.73.486
 
 RUN apt-get update && apt-get -y install curl
 
@@ -30,4 +30,4 @@ RUN curl -L -o /weights/sparse_inst_r50_dcn_giam_aug.pth "https://github.com/sup
 RUN curl -L -o /weights/sparse_inst_r50vd_dcn_giam_aug.pth "https://github.com/supervisely-ecosystem/SparseInst/releases/download/v0.0.1/sparse_inst_r50vd_dcn_giam_aug.pth"
 RUN curl -L -o /weights/sparse_inst_pvt_v2_b2_li_giam.pth "https://github.com/supervisely-ecosystem/SparseInst/releases/download/v0.0.1/sparse_inst_pvt_v2_b2_li_giam.pth"
 
-LABEL python_sdk_version=6.73.404
+LABEL python_sdk_version="6.73.486"
