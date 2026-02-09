@@ -19,7 +19,7 @@
     "poster": "https://github.com/supervisely-ecosystem/SparseInst/releases/download/v0.0.1/poster_sparseInst-serve.jpg",
     "community_agent": false,
     "docker_image": "supervisely/sparseinst:1.0.5",
-    "instance_version": "6.15.35",
+    "instance_version": "6.15.40",
     "entrypoint": "python3 -m uvicorn src.main:model.app --app-dir ./serve --host 0.0.0.0 --port 8000 --ws websockets",
     "port": 8000,
     "task_location": "application_sessions",
