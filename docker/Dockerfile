@@ -1,22 +1,21 @@
 FROM supervisely/base-py-sdk:6.73.530
 
-RUN pip3 install torch==1.10.1+cu113 torchvision==0.11.2+cu113 torchaudio==0.10.1+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
-
 RUN pip3 install setuptools==69.5.1
 RUN pip3 install imagecorruptions==1.1.2
 RUN pip3 install ffmpeg-python==0.2.0
 RUN pip3 install protobuf==3.20.3
 
-RUN pip3 install detectron2 -f \
-    https://dl.fbaipublicfiles.com/detectron2/wheels/cu113/torch1.10/index.html
+RUN pip3 install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu128
 
-RUN apt-get -y install nvidia-cuda-dev
-RUN pip3 install pycuda==2025.1.1
-RUN pip3 install nvidia-tensorrt==99.0.0
+RUN pip3 install ninja
+RUN python3 -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
+
+RUN pip3 install pycuda>=2024.1
+RUN pip3 install nvidia-tensorrt==10.0.1
 
 RUN pip3 install Pillow==9.5.0
 RUN pip3 install timm==1.0.16
-RUN pip3 install onnxruntime-gpu==1.11.0
+RUN pip3 install onnxruntime-gpu==1.19.0
 
 RUN apt-get update && apt-get -y install curl
 
