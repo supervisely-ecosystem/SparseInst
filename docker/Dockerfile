@@ -23,7 +23,7 @@ RUN pip3 install ninja wheel
 RUN python3.12 -m pip install --no-build-isolation 'git+https://github.com/facebookresearch/detectron2.git'
 
 RUN pip3 install pycuda>=2024.1
-RUN pip3 install nvidia-tensorrt==10.0.1
+RUN pip3 install tensorrt-cu12==10.0.1
 
 RUN pip3 install Pillow==9.5.0
 RUN pip3 install timm==1.0.16
