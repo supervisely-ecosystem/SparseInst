@@ -1,11 +1,24 @@
 FROM supervisely/base-py-sdk:6.73.530
 
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    && add-apt-repository ppa:deadsnakes/ppa -y \
+    && apt-get update
+
+RUN apt-get install -y python3.12 python3.12-dev wget git build-essential
+RUN wget https://bootstrap.pypa.io/get-pip.py && \
+    python3.12 get-pip.py && \
+    rm get-pip.py
+RUN pip install --upgrade setuptools
+
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
+
 RUN pip3 install setuptools==69.5.1
 RUN pip3 install imagecorruptions==1.1.2
 RUN pip3 install ffmpeg-python==0.2.0
 RUN pip3 install protobuf==3.20.3
 
-RUN pip3 install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu128
+RUN pip3 install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu128
 
 RUN pip3 install ninja
 RUN python3 -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
