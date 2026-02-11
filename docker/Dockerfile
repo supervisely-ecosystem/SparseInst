@@ -19,7 +19,7 @@ RUN pip3 install protobuf==3.20.3
 
 RUN pip3 install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu128
 
-RUN pip3 install ninja
+RUN pip3 install ninja wheel
 RUN python3.12 -m pip install --no-build-isolation 'git+https://github.com/facebookresearch/detectron2.git'
 
 RUN pip3 install pycuda>=2024.1
