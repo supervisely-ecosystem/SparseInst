@@ -134,7 +134,7 @@ class BaseIAMDecoder(nn.Module):
         x_loc = torch.linspace(input_1, input_3, input_4, device=x.device)
         #y_loc = torch.arange(-1, 1+(2/h), 2/(h-1), device=x.device)
         #x_loc = torch.arange(-1, 1+(2/w), 2/(w-1), device=x.device)
-        y_loc, x_loc = torch.meshgrid(y_loc, x_loc)
+        y_loc, x_loc = torch.meshgrid(y_loc, x_loc, indexing='ij')
         y_loc = y_loc.expand([x.shape[0], 1, -1, -1])
         x_loc = x_loc.expand([x.shape[0], 1, -1, -1])
         locations = torch.cat([x_loc, y_loc], 1)
