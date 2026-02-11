@@ -3,9 +3,10 @@ FROM supervisely/base-py-sdk:6.73.530
 RUN apt-get update && apt-get install -y \
     software-properties-common \
     && add-apt-repository ppa:deadsnakes/ppa -y \
-    && apt-get update
+    && apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y python3.12 python3.12-dev wget git build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get install -y python3.12 python3.12-dev wget git build-essential
 RUN wget https://bootstrap.pypa.io/get-pip.py && \
     python3.12 get-pip.py && \
     rm get-pip.py
