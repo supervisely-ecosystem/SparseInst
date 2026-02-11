@@ -1,6 +1,17 @@
 FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu22.04
 ENV DEBIAN_FRONTEND=noninteractive
 
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    && add-apt-repository ppa:deadsnakes/ppa -y \
+    && apt-get update
+
+RUN apt-get install -y python3.12 python3.12-dev wget git build-essential
+RUN wget https://bootstrap.pypa.io/get-pip.py && \
+    python3.12 get-pip.py && \
+    rm get-pip.py
+RUN pip install --upgrade setuptools
+
 RUN pip3 install setuptools==69.5.1
 RUN pip3 install imagecorruptions==1.1.2
 RUN pip3 install ffmpeg-python==0.2.0
