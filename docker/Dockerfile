@@ -1,18 +1,5 @@
-FROM supervisely/base-py-sdk:6.73.530
-
-RUN apt-get update && apt-get install -y \
-    software-properties-common \
-    && add-apt-repository ppa:deadsnakes/ppa -y \
-    && apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y python3.12 python3.12-dev wget git build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN wget https://bootstrap.pypa.io/get-pip.py && \
-    python3.12 get-pip.py && \
-    rm get-pip.py
-RUN pip install --upgrade setuptools
-
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
+FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu22.04
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN pip3 install setuptools==69.5.1
 RUN pip3 install imagecorruptions==1.1.2
