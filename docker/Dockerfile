@@ -25,7 +25,7 @@ RUN python3.12 -m pip install --no-build-isolation 'git+https://github.com/faceb
 RUN pip3 install pycuda>=2024.1
 RUN pip3 install tensorrt-cu12==10.0.1
 
-RUN pip3 install Pillow==9.5.0
+RUN pip3 install Pillow==10.4.0
 RUN pip3 install timm==1.0.16
 RUN pip3 install onnxruntime-gpu==1.19.0
 
