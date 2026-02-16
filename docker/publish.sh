@@ -1,2 +1,5 @@
-docker build -t supervisely/sparseinst:dev-0.0.2 . && \
-docker push supervisely/sparseinst:dev-0.0.2
+VER="1.1.0"
+TAG="supervisely/sparseinst:$VER"
+
+docker build -t $TAG . && \
+docker push $TAG
