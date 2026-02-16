@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
     && add-apt-repository ppa:deadsnakes/ppa -y \
     && apt-get update
 
-RUN apt-get install -y python3.12 python3.12-dev wget git build-essential
+RUN apt-get install -y python3.12 python3.12-dev wget git build-essential libgl1-mesa-glx libglib2.0-0
 RUN ln -sf /usr/bin/python3.12 /usr/bin/python3
 RUN wget https://bootstrap.pypa.io/get-pip.py && \
     python3.12 get-pip.py && \
