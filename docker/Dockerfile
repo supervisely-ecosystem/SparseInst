@@ -43,6 +43,6 @@ RUN pip3 install supervisely==6.73.530
 RUN pip3 install supervisely[model-benchmark]==6.73.530
 RUN pip3 install supervisely[training]==6.73.530
 
-RUN pip3 install uvicorn==0.40.0
+RUN python3.12 -m pip install uvicorn==0.40.0
 
 LABEL python_sdk_version="6.73.530"
