@@ -28,6 +28,8 @@ RUN pip3 install tensorrt-cu12==10.0.1
 
 RUN pip3 install Pillow==10.4.0
 RUN pip3 install timm==1.0.16
+
+RUN pip3 install onnx==1.17.0
 RUN pip3 install onnxruntime-gpu==1.19.0
 
 RUN apt-get update && apt-get -y install curl
@@ -40,10 +42,10 @@ RUN curl -L -o /weights/sparse_inst_r50_dcn_giam_aug.pth "https://github.com/sup
 RUN curl -L -o /weights/sparse_inst_r50vd_dcn_giam_aug.pth "https://github.com/supervisely-ecosystem/SparseInst/releases/download/v0.0.1/sparse_inst_r50vd_dcn_giam_aug.pth"
 RUN curl -L -o /weights/sparse_inst_pvt_v2_b2_li_giam.pth "https://github.com/supervisely-ecosystem/SparseInst/releases/download/v0.0.1/sparse_inst_pvt_v2_b2_li_giam.pth"
 
-RUN pip3 install supervisely==6.73.530
-RUN pip3 install supervisely[model-benchmark]==6.73.530
-RUN pip3 install supervisely[training]==6.73.530
+RUN pip3 install supervisely==6.73.581
+RUN pip3 install supervisely[model-benchmark]==6.73.581
+RUN pip3 install supervisely[training]==6.73.581
 
 RUN python3.12 -m pip install uvicorn==0.40.0
 
-LABEL python_sdk_version="6.73.530"
+LABEL python_sdk_version="6.73.581"
