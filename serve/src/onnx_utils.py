@@ -8,7 +8,7 @@ import numpy as np
 from detectron2.structures import Instances
 
 
-def convert_to_onnx(cfg):
+def convert_to_onnx(cfg, output_path=None):
     cfg.MODEL.META_ARCHITECTURE = "SparseInst_ONNX_TRT"
     cfg.MODEL.BACKBONE.FREEZE_AT = 0
     cfg.MODEL.RESNETS.NORM = "BN"
@@ -28,22 +28,25 @@ def convert_to_onnx(cfg):
     model.forward = model.forward_test_3
     model.eval()
 
-    if not os.path.exists("output"):
-        os.mkdir("output")
-    
-    onnx_model_path = "output/sparseinst.onnx"
+    if output_path is None:
+        os.makedirs("output", exist_ok=True)
+        output_path = "output/sparseinst.onnx"
+    else:
+        output_dir = os.path.dirname(output_path)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
 
     torch.onnx.export(
         model,
         dummy_input,
-        onnx_model_path,
+        output_path,
         verbose=True,
         input_names=input_names,
         output_names=output_names,
         keep_initializers_as_inputs=False,
         opset_version=11,
     )
-    return onnx_model_path
+    return output_path
 
 
 def preprocess_onnx_inputs(images_np, cfg):
@@ -82,6 +85,5 @@ def postprocess_onnx_predictions(scores, classes, masks, orig_shapes, cfg):
         result.pred_classes = classes_per_image
         results.append(result)
     return results
-
 
 

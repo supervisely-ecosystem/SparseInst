@@ -53,3 +53,6 @@ local.env
 train_data/
 train_output/
 app_data/
+
+.venv
+supervisely

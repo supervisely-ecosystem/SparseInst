@@ -1,4 +1,4 @@
-VER="1.1.0"
+VER="1.1.1"
 TAG="supervisely/sparseinst:$VER"
 
 docker build -t $TAG . && \

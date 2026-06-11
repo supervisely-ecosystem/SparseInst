@@ -137,7 +137,7 @@ class TRTInference(object):
             _ = self(blob)
 
 
-def convert_to_tensorrt(onnx_path):
+def convert_to_tensorrt(onnx_path, output_path=None):
     network_flags = 1 << (int)(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
 
     trt_logger = trt.Logger(trt.Logger.VERBOSE)
@@ -155,13 +155,20 @@ def convert_to_tensorrt(onnx_path):
 
     print("Completed parsing ONNX file")
 
-    engine_file_path = "output/sparseinst.engine"
+    if output_path is None:
+        os.makedirs("output", exist_ok=True)
+        output_path = "output/sparseinst.engine"
+    else:
+        output_dir = os.path.dirname(output_path)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+
     config = builder.create_builder_config()
     config.set_tactic_sources(1 << int(trt.TacticSource.CUBLAS))
     config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, 2 << 30)
     config.set_flag(trt.BuilderFlag.FP16)
     serialized_engine = builder.build_serialized_network(network, config)
 
-    with open(engine_file_path, "wb") as f:
+    with open(output_path, "wb") as f:
         f.write(serialized_engine)
-    return engine_file_path
+    return output_path
