@@ -45,16 +45,10 @@ class SparseInstModel(sly.nn.inference.InstanceSegmentation):
         runtime: str,
     ):
         config_path = model_files["config"]
-        self.cfg = get_cfg()
-        add_sparse_inst_config(self.cfg)
-        self.cfg.merge_from_file(config_path)
-
         checkpoint_path = model_files["checkpoint"]
         # if sly.is_development():
         #     checkpoint_path = "." + checkpoint_path
-        self.cfg.MODEL.WEIGHTS = checkpoint_path
-        self.cfg.MODEL.DEVICE = device
-        self.cfg.MODEL.SPARSE_INST.CLS_THRESHOLD = 0.1
+        self.cfg = self._build_cfg(config_path, checkpoint_path, device)
         self.device = device
 
         if runtime == RuntimeType.PYTORCH:
@@ -65,18 +59,26 @@ class SparseInstModel(sly.nn.inference.InstanceSegmentation):
             checkpointer.load(self.cfg.MODEL.WEIGHTS)
             self.model.eval()
         elif runtime in [RuntimeType.ONNXRUNTIME, RuntimeType.TENSORRT]:
-            if runtime == RuntimeType.ONNXRUNTIME and model_info["ONNX support"] == "False":
-                raise ValueError(f"{model_info['meta']['model_name']} does not support ONNX. Please, use SparseInst (G-IAM) R-50 instead.")
-            elif runtime == RuntimeType.TENSORRT and model_info["TensorRT support"] == "False":
-                raise ValueError(f"{model_info['meta']['model_name']} does not support TensorRT. Please, use SparseInst (G-IAM) R-50 instead.")
-            
-            onnx_path = convert_to_onnx(self.cfg)
+            checkpoint_ext = os.path.splitext(checkpoint_path)[1].lower()
 
             if runtime == RuntimeType.ONNXRUNTIME:
+                if checkpoint_ext == ".onnx":
+                    onnx_path = checkpoint_path
+                else:
+                    onnx_path, _ = self._get_export_paths(checkpoint_path)
+                    onnx_path = convert_to_onnx(self.cfg, onnx_path)
                 providers = (["CUDAExecutionProvider"] if device != "cpu" else ["CPUExecutionProvider"])
                 self.ort_session = ort.InferenceSession(onnx_path, providers=providers)
             elif runtime == RuntimeType.TENSORRT:
-                tensorrt_path = convert_to_tensorrt(onnx_path)
+                if checkpoint_ext == ".engine":
+                    tensorrt_path = checkpoint_path
+                else:
+                    onnx_path, tensorrt_path = self._get_export_paths(checkpoint_path)
+                    if checkpoint_ext == ".onnx":
+                        onnx_path = checkpoint_path
+                    else:
+                        onnx_path = convert_to_onnx(self.cfg, onnx_path)
+                    tensorrt_path = convert_to_tensorrt(onnx_path, tensorrt_path)
                 self.engine = TRTInference(tensorrt_path, max_batch_size=1)
 
         if model_source == ModelSource.PRETRAINED:
@@ -89,7 +91,7 @@ class SparseInstModel(sly.nn.inference.InstanceSegmentation):
             )
             self.classes = MetadataCatalog.get("coco_2017_val").thing_classes
         else:
-            self.classes = torch.load(checkpoint_path)["class_names"]
+            self.classes = self._load_custom_classes(checkpoint_path)
 
         obj_classes = [sly.ObjClass(name, sly.Bitmap) for name in self.classes]
         conf_tag = sly.TagMeta("confidence", sly.TagValueType.ANY_NUMBER)
@@ -241,3 +243,54 @@ class SparseInstModel(sly.nn.inference.InstanceSegmentation):
                 prediction = self._format_prediction(result, confidence_threshold)
                 predictions.append(prediction)
         return predictions
+
+    def _build_cfg(self, config_path: str, checkpoint_path: str, device: str = "cuda"):
+        cfg = get_cfg()
+        add_sparse_inst_config(cfg)
+        cfg.merge_from_file(config_path)
+        cfg.MODEL.WEIGHTS = checkpoint_path
+        cfg.MODEL.DEVICE = device
+        cfg.MODEL.SPARSE_INST.CLS_THRESHOLD = 0.1
+        return cfg
+
+    def _get_export_paths(self, checkpoint_path: str):
+        checkpoint_root, _ = os.path.splitext(checkpoint_path)
+        return f"{checkpoint_root}.onnx", f"{checkpoint_root}.engine"
+
+    def _load_custom_classes(self, checkpoint_path: str) -> List[str]:
+        checkpoint_root, checkpoint_ext = os.path.splitext(checkpoint_path)
+        checkpoint_candidates = [checkpoint_path]
+        if checkpoint_ext.lower() not in (".pt", ".pth"):
+            checkpoint_candidates = [f"{checkpoint_root}.pth", f"{checkpoint_root}.pt"]
+
+        for candidate in checkpoint_candidates:
+            if os.path.exists(candidate):
+                return torch.load(candidate)["class_names"]
+
+        raise FileNotFoundError(
+            "Could not load custom class names. Expected a PyTorch checkpoint "
+            f"near exported file '{checkpoint_path}'."
+        )
+
+    # Converters --------------- #
+    def export_onnx(self, deploy_params: dict) -> str:
+        model_files = deploy_params["model_files"]
+        checkpoint_path = model_files["checkpoint"]
+        config_path = model_files["config"]
+        device = deploy_params.get("device", "cuda")
+        cfg = self._build_cfg(config_path, checkpoint_path, device)
+        onnx_path, _ = self._get_export_paths(checkpoint_path)
+        return convert_to_onnx(cfg, onnx_path)
+
+    def export_tensorrt(self, deploy_params: dict) -> str:
+        model_files = deploy_params["model_files"]
+        checkpoint_path = model_files["checkpoint"]
+        config_path = model_files["config"]
+        device = deploy_params.get("device", "cuda")
+        onnx_path, tensorrt_path = self._get_export_paths(checkpoint_path)
+
+        if not os.path.exists(onnx_path):
+            cfg = self._build_cfg(config_path, checkpoint_path, device)
+            convert_to_onnx(cfg, onnx_path)
+
+        return convert_to_tensorrt(onnx_path, tensorrt_path)
