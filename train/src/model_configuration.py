@@ -19,6 +19,7 @@ import detectron2.utils.comm as comm
 from detectron2.solver.build import maybe_add_gradient_clipping
 import itertools
 import supervisely as sly
+from supervisely.nn import ModelSource
 from detectron2.engine.hooks import HookBase
 from supervisely.nn.training import train_logger
 
@@ -166,12 +167,13 @@ def configure_trainer(train):
     # basic setup
     cfg = get_cfg()
     add_sparse_inst_config(cfg)
-    config_path = train.model_info["meta"]["model_files"]["config"]
+    # model files are prepared by TrainApp for both pretrained and custom models
+    config_path = train.model_files["config"]
     cfg.merge_from_file(config_path)
-    
+
     # weights path
-    checkpoint_path = train.model_info["meta"]["model_files"]["checkpoint"]
-    if sly.is_development():
+    checkpoint_path = train.model_files["checkpoint"]
+    if sly.is_development() and train.model_source == ModelSource.PRETRAINED:
         checkpoint_path = "." + checkpoint_path
     cfg.MODEL.WEIGHTS = checkpoint_path
 
